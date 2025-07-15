@@ -3,7 +3,10 @@ import React, {
   useState,
 } from 'react';
 
-import { ethers } from 'ethers';
+import {
+  BrowserProvider,
+  Contract,
+} from 'ethers';
 
 import { CONTRACT_ABI } from './contracts/LockABI';
 import { CONTRACT_ADDRESS } from './contracts/LockAddress';
@@ -17,19 +20,13 @@ function App() {
   const [owner, setOwner] = useState(null);
   const [withdrawStatus, setWithdrawStatus] = useState("");
 
-  // Conecta com carteira/metamask
   const connectWallet = async () => {
     if (window.ethereum) {
-      const prov = new ethers.providers.Web3Provider(window.ethereum);
-      await prov.send("eth_requestAccounts", []);
-      const signer = prov.getSigner();
+      const prov = new BrowserProvider(window.ethereum);
+      const signer = await prov.getSigner();
       const address = await signer.getAddress();
 
-      const lockContract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        CONTRACT_ABI,
-        signer
-      );
+      const lockContract = new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
       setProvider(prov);
       setSigner(signer);

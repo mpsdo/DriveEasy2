@@ -1,7 +1,3 @@
-import Lock from './Lock.json';
-
-export const CONTRACT_ABI = Lock.abi;
-
 export const CONTRACT_ABI = [
     {
       "inputs": [

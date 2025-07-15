@@ -3,45 +3,39 @@ import '@rainbow-me/rainbowkit/styles.css';
 import React from 'react';
 
 import ReactDOM from 'react-dom/client';
-import {
-  configureChains,
-  createConfig,
-  WagmiConfig,
-} from 'wagmi';
+import { WagmiProvider } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
-import { publicProvider } from 'wagmi/providers/public';
 
 import {
-  getDefaultWallets,
+  getDefaultConfig,
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 
 import App from './App';
 
-const { chains, publicClient } = configureChains(
-  [sepolia], // você pode trocar por outra rede depois
-  [publicProvider()]
-);
-
-const { connectors } = getDefaultWallets({
+// Criação da config padrão
+const config = getDefaultConfig({
   appName: 'DriveEasy2',
-  projectId: 'driveeasy2', // nome fictício, não precisa ser real
-  chains,
+  projectId: 'driveeasy2', // Se quiser usar WalletConnect, esse ID precisa ser real.
+  chains: [sepolia],
 });
 
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors,
-  publicClient,
-});
+// Query client para React Query (usado pelo RainbowKit/Wagmi)
+const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <App />
-      </RainbowKitProvider>
-    </WagmiConfig>
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={config}>
+        <RainbowKitProvider>
+          <App />
+        </RainbowKitProvider>
+      </WagmiProvider>
+    </QueryClientProvider>
   </React.StrictMode>
 );
