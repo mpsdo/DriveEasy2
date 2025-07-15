@@ -1,17 +1,47 @@
+import '@rainbow-me/rainbowkit/styles.css';
+
 import React from 'react';
+
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import {
+  configureChains,
+  createConfig,
+  WagmiConfig,
+} from 'wagmi';
+import { sepolia } from 'wagmi/chains';
+import { publicProvider } from 'wagmi/providers/public';
+
+import {
+  getDefaultWallets,
+  RainbowKitProvider,
+} from '@rainbow-me/rainbowkit';
+
 import App from './App';
-import reportWebVitals from './reportWebVitals';
+
+const { chains, publicClient } = configureChains(
+  [sepolia], // você pode trocar por outra rede depois
+  [publicProvider()]
+);
+
+const { connectors } = getDefaultWallets({
+  appName: 'DriveEasy2',
+  projectId: 'driveeasy2', // nome fictício, não precisa ser real
+  chains,
+});
+
+const wagmiConfig = createConfig({
+  autoConnect: true,
+  connectors,
+  publicClient,
+});
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <WagmiConfig config={wagmiConfig}>
+      <RainbowKitProvider chains={chains}>
+        <App />
+      </RainbowKitProvider>
+    </WagmiConfig>
   </React.StrictMode>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
