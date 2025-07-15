@@ -1,4 +1,4 @@
 import Lock from './Lock.json';
 
-export const contractAddress = "0x1234567890abcdef1234567890abcdef12345678"; // substitua pelo real
+export const contractAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"; // substitua pelo real
 export const contractABI = Lock.abi;
