@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Carros Cadastrados</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+  <h1>Lista de Carros</h1>
+  <button onclick="getCars()">Carregar Carros</button>
+  <ul id="carList"></ul>
+
+  <script>
+    const abi = [
+      {
+        "inputs": [],
+        "name": "getCars",
+        "outputs": [
+          {
+            "components": [
+              { "internalType": "string", "name": "chassisNumber", "type": "string" },
+              { "internalType": "string", "name": "licensePlate", "type": "string" },
+              { "internalType": "string", "name": "manufacturer", "type": "string" },
+              { "internalType": "string", "name": "model", "type": "string" },
+              { "internalType": "uint32", "name": "year", "type": "uint32" },
+              { "internalType": "bool", "name": "exists", "type": "bool" }
+            ],
+            "internalType": "struct Rent.Car[]",
+            "name": "",
+            "type": "tuple[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
+
+    const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // endereço do deploy no Hardhat
+
+    async function getCars() {
+      if (!window.ethereum) {
+        alert("MetaMask não encontrada!");
+        return;
+      }
+
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const rentContract = new ethers.Contract(contractAddress, abi, signer);
+
+      try {
+        const cars = await rentContract.getCars();
+        const list = document.getElementById("carList");
+        list.innerHTML = "";
+
+        cars.forEach((car, index) => {
+          const item = document.createElement("li");
+          item.textContent = `${index + 1}. ${car.manufacturer} ${car.model} (${car.year}) - Placa: ${car.licensePlate}`;
+          list.appendChild(item);
+        });
+      } catch (err) {
+        console.error("Erro ao buscar os carros:", err);
+        alert("Erro ao buscar os carros. Veja o console.");
+      }
+    }
+  </script>
+</body>
+</html>

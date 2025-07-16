@@ -1,31 +1,134 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
 
-contract Lock {
-    uint256 private s_unlockTime;
-    address private s_owner;
+pragma solidity >=0.7.0 <0.9.0;
 
-    event Withdrawal(uint256 amount, uint256 when);
+contract Rent {
+    address public rentalCompany;
+    mapping(address => Driver) public drivers;
+    mapping(string => Car) public cars;
+    Car[] public carArray;
+    Driver[] public driverArray;
 
-    constructor(uint256 unlockTime_) payable {
-        require(unlockTime_ > block.timestamp, "Unlock time should be in the future");
-        s_unlockTime = unlockTime_;
-        s_owner = msg.sender;
+    struct Car {
+        string chassisNumber;
+        string licensePlate;
+        string manufacturer;
+        string model;
+        uint32 year;
+        bool exists;
     }
 
-    function unlockTime() public view returns (uint256) {
-        return s_unlockTime;
+    struct Driver {
+        string birth;
+        string license;
+        string name;
+        string[] phoneNumbers;
+        bool exists;
+        Car rented;
     }
 
-    function owner() public view returns (address) {
-        return s_owner;
+    constructor() {
+        rentalCompany = msg.sender;
     }
 
-    function withdraw() public {
-        require(block.timestamp >= s_unlockTime, "You can't withdraw yet");
-        require(msg.sender == s_owner, "You aren't the owner");
+    function registerCar(
+        string calldata _chassisNumber,
+        string calldata _licensePlate,
+        string calldata _manufacturer,
+        string calldata _model,
+        uint32 _year
+    ) external {
+        require(
+            msg.sender == rentalCompany,
+            "Only the company can register cars"
+        );
 
-        emit Withdrawal(address(this).balance, block.timestamp);
-        payable(s_owner).transfer(address(this).balance);
+        Car memory newCar = Car(_chassisNumber,_licensePlate,_manufacturer,_model,_year,true);
+        cars[_licensePlate] = newCar;
+        carArray.push(newCar);
+    }
+    
+    function registerDriver(
+        string calldata _birth, 
+        string calldata _license, 
+        string calldata _name, 
+        string[] calldata _phoneNumbers
+    ) public {
+        require(
+            msg.sender != rentalCompany,
+            "Only drivers can register themselves"
+        );
+
+        require(
+            drivers[msg.sender].exists == false,
+            "Driver with this address is already registered"
+        );
+
+        Driver memory newDriver;
+        newDriver.birth = _birth;
+        newDriver.license = _license;
+        newDriver.name = _name;
+        newDriver.phoneNumbers = _phoneNumbers;
+        newDriver.exists = true;
+        drivers[msg.sender] = newDriver;
+        driverArray.push(newDriver);
+    }
+
+    function getCar(string calldata _licensePlate) external view returns (Car memory) {
+        require(
+            msg.sender == rentalCompany,
+            "Only the company can check cars"
+        );
+
+        return cars[_licensePlate];
+    }
+
+    function getCars() external view returns (Car[] memory) {
+        return carArray;
+    }
+
+    function getCompany() external view returns (address) {
+        return rentalCompany;
+    }
+    
+    function getDriver(address _driverAddress) external view returns (Driver memory) {
+        require(
+            msg.sender == rentalCompany,
+            "Only the company can check drivers"
+        );
+
+        return drivers[_driverAddress];
+    }
+
+    function getDrivers() external view returns (Driver[] memory) {
+        return driverArray;
+    }
+    
+    function getSelf() external view returns (Driver memory) {
+        return drivers[msg.sender];
+    }
+
+    function rent(string calldata _licensePlate) external {
+        require(
+            msg.sender != rentalCompany,
+            "Only drivers can rent cars"
+        );
+        
+        require(
+            drivers[msg.sender].exists == true && cars[_licensePlate].exists == true,
+            "Driver/car must register before rent"
+        );
+
+        drivers[msg.sender].rented = cars[_licensePlate];
+    }
+
+    function returnCar() external {
+        require(
+            drivers[msg.sender].rented.exists == true,
+            "Driver must rent a car before returning it"
+        );
+
+        Car memory _nullCar;
+        drivers[msg.sender].rented = _nullCar;
     }
 }

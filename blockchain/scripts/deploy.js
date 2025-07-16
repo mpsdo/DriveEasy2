@@ -1,20 +1,12 @@
-const hre = require("hardhat");
-const { ethers } = hre;
+const { ethers } = require("hardhat");
 
 async function main() {
-  const unlockTime = Math.floor(Date.now() / 1000) + 60; // 1 minuto no futuro
-
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, {
-    value: ethers.parseEther("0.1"),
-  });
-
-  console.log(`Contrato Lock foi implantado em: ${lock.target}`);
+    const rentContract = await ethers.deployContract("Rent");
+    await rentContract.waitForDeployment();
+    console.log(`Contract "Rent" deployed to ${rentContract.target}`);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
+main().catch((error) => {
     console.error(error);
-    process.exit(1);
-  });
+    process.exitCode = 1;
+});
